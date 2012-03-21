@@ -1,0 +1,457 @@
+// Brian Ryckbost
+// CS 352
+// Program 5: Dungeons of Calvin: a CRML experiment
+
+#include "Dungeon.h"
+#include <qapplication.h>
+#include <qevent.h>
+#include <qpainter.h>
+#include <qtoolbar.h>
+#include <qtoolbutton.h>
+#include <qtooltip.h>
+#include <qpoint.h>
+#include <qfiledialog.h>
+#include <qimage.h>
+#include <stdlib.h>
+#include <qmessagebox.h>
+#include <qslider.h>
+#include <iostream>
+#include <GL/glut.h>
+#include <string>
+#include <fstream>
+#include <math.h>
+#include <assert.h>
+#include <vector>
+
+using namespace std;
+
+double locx=10.0, locy=5.0, locz=6.0;		//location of viewer
+double orient;					//orientation of viewer
+int winwidth=1024, winheight=580;		//initial window size
+const double PI=3.1415926535;
+const double MAXSTEP=2, MAXROT = 1.0/6.0*PI;	//maximum step, turn
+const double FOV=75.0;
+char ROOM[120]="/home/hplantin/public/crml/2007/hall.crml";
+GLubyte *image;
+GLuint texName[50];
+
+vector <Wall> wallVector;
+vector <Door> doorVector;
+
+Canvas::Canvas( QWidget *parent, const char *name ) : QGLWidget(parent, name)
+{
+    setCaption("Dungeons of Calvin: Featuring CRML and QT");
+    setFocusPolicy(QWidget::StrongFocus);
+}
+
+//
+// given a viewing direction and location, this function sets the
+// viewing parameters appropriately.
+//
+void Canvas::walkView(double orient, double locx, double locy, double locz) 
+{
+    cout << "walkView:\tx="<<locx << "\ty="<<locy << "\tz="<<locz 
+            << "\torient="<<orient*180/PI << endl; 
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(FOV, 1.0*winwidth/winheight, 0.5, 10000.0);
+    gluLookAt(locx, locy, locz, locx+sin(orient), locy+cos(orient), locz, 0.0, 0.0, 1.0);
+}
+
+//
+// The read-room function only reads the faces and face colors.
+// You should make it read in walls and doors and handle texture mapping.
+//
+void Canvas::read_room(char *room) 
+{
+    theRoom = glGenLists(1);
+    GLfloat lookx, looky, lookz;
+    string keyword;
+    string texture;
+    GLfloat  texCoords[4][2] = {{1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}};
+
+    //open the filename we are given
+    cout << "Opening " << ROOM << endl;
+    ifstream fin(ROOM);
+    assert(fin.is_open());
+
+   
+    //
+    // note that if you are coming to this room from
+    // another room, you should use the eyep and lookp from
+    // the door you just went through, not these values.
+    //
+    fin >> keyword >> locx >> locy >> locz;
+    fin >> keyword >> lookx >> looky >> lookz;
+    orient = atan2(looky-locy, lookx-locx);
+    walkView(orient, locx, locy, locz);		//set up viewing transformation
+
+    //Faces
+    int numFaces;
+    fin >> keyword >> numFaces;
+    cout << numFaces << " faces" << endl;
+    GLfloat red, green, blue, x, y, z;
+
+    glNewList(theRoom, GL_COMPILE);		//store room in display list
+    int width, height, comp;
+    
+    for (int i=0; i<numFaces; i++)		//read in and draw each face
+    {
+        fin >> keyword >> red >> green >> blue;
+        glColor3f(red, green, blue);
+        fin >> keyword >> texture >> keyword;
+        
+        if (texture != "none" ) {
+            glGenTextures(50, texName);
+            glGenTextures(50,texName);
+            glBindTexture(GL_TEXTURE_2D, texName[0]);
+            cout << texture;
+            image = (GLubyte *) read_texture((char*)texture.c_str(), &width, &height, &comp);
+            
+            gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_RGBA, 
+                              GL_UNSIGNED_BYTE, image);
+            free(image);
+            
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glEnable(GL_TEXTURE_2D);
+            glShadeModel(GL_SMOOTH);
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        
+        glBegin(GL_QUADS);
+        for (int i=0; i<4; i++)
+        {
+            fin >> x >> y >> z;
+            if(texture != "none")
+                glTexCoord2fv(texCoords[i]);
+            glVertex3f(x, y, z);
+        }
+        glEnd();
+    }
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    
+    //Walls
+    int numWalls;
+    GLfloat x1, y1, x2, y2;
+    Wall wall;
+    fin >> keyword >> numWalls;
+    cout << numWalls << " walls" << endl;
+    
+    for (int i=0; i<numWalls; i++) {
+        fin >> x1 >> y1 >> x2 >> y2;
+        wall.coords[0] = x1;
+        wall.coords[1] = y1;
+        wall.coords[2] = x2;
+        wall.coords[3] = y2;
+        wallVector.push_back(wall);
+    }
+    
+    //Doors
+    int numDoors;    
+    fin >> keyword >> numDoors;
+    Door door;
+    string roomName;
+
+    cout << numDoors << " doors" << endl;
+
+    for (int i=0; i<numDoors; i++) {
+        fin >> x1 >> y1 >> x2 >> y2;
+        door.coords[0] = x1; 
+        door.coords[1] = y1; 
+        door.coords[2] = x2; 
+        door.coords[3] = y2;
+
+        fin >> roomName;
+        door.roomLocation = roomName;
+        
+        fin >> x >> y >> z;
+        door.eyep[0] = x; 
+        door.eyep[1] = y; 
+        door.eyep[2] = z;
+        
+        fin >> x >> y >> z;
+        door.lookp[0] = x; 
+        door.lookp[1] = y; 
+        door.lookp[2] = z;
+    }
+    
+    //Objects
+    int numObjects;
+    GLfloat angle;
+    string objectName;
+    bool isDone;
+    fin >> keyword >> numObjects;
+    cout << numObjects << " objects" << endl;
+    
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.1f);
+    
+    for (int i=0; i<numObjects; i++) {
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glPushMatrix();
+        isDone = false;
+        while (!isDone) {
+            fin >> keyword;
+            if (keyword == "translate") {
+                fin >> x >> y >> z;
+                glTranslatef(x,y,z);
+            } else if (keyword == "scale") {
+                fin >> x >> y >> z;
+                glScalef(x,y,z);
+            } else if (keyword == "rotate") {
+                fin >> angle >> x >> y >> z;
+                glRotatef(angle,x,y,z);
+            } else {
+                isDone = true;
+                objectName = keyword;
+            }
+        }
+        
+        object = glmReadOBJ((char*) objectName.c_str() );
+        
+        glmUnitize(object);
+        
+        glEnable(GL_LIGHTING);
+        glEnable(GL_COLOR_MATERIAL);
+        glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glEnable(GL_CULL_FACE);
+        glShadeModel(GL_SMOOTH);
+        glEnable(GL_LIGHT0);
+        
+        glmDraw(object, GLM_SMOOTH | GLM_COLOR);
+        glPopMatrix();
+        glLoadIdentity();
+        
+        glDisable(GL_LIGHTING);
+        glDisable(GL_COLOR_MATERIAL);
+        glDisable(GL_LIGHT0);
+        
+        isDone = false;
+    }
+    glEndList();
+} 
+
+
+void Canvas::setFocalLength(int focal) {
+    focalLength = focal;
+    updateGL();
+}
+
+void Canvas::setEyeSep(int eye) {
+    seperation = eye;
+    updateGL();
+}
+
+// 
+// Remember mouse coords. Actual drawing is done in the
+// paintGL function.
+//
+void Canvas::mousePressEvent( QMouseEvent *e )
+{
+    x = e->x();
+    y = e->y();
+
+    mousePressed = true;
+    if (mousePressed) 
+    {
+        orient += MAXROT * (2.0*x/winwidth - 1.0);
+        float step = MAXSTEP * (2.0 * y / winheight - 1.0);
+        locx -= step *  sin(orient);	// subtract because we're really
+        locy -= step *  cos(orient);	// moving the world, not the viewer
+        walkView(orient, locx, locy, locz);
+    }
+   
+    
+    updateGL();
+}
+
+void Canvas::keyPressEvent ( QKeyEvent * k ) {
+
+    int key = k->key();
+    if (key == Qt::Key_Up || key == Qt::Key_W) {
+        orient += 0;
+        float step = MAXSTEP;
+        locx += step *  sin(orient);	// subtract because we're really
+        locy += step *  cos(orient);	// moving the world, not the viewer
+        walkView(orient, locx, locy, locz);
+        updateGL();
+    } else if (key == Qt::Key_Left || key == Qt::Key_A) {
+        orient += -.25;
+        float step = 0;
+        locx -= step *  sin(orient);	// subtract because we're really
+        locy -= step *  cos(orient);	// moving the world, not the viewer
+        walkView(orient, locx, locy, locz);
+        updateGL();
+    } else if (key == Qt::Key_Down || key == Qt::Key_S) {
+        orient += 0;
+        float step = MAXSTEP;
+        locx -= step *  sin(orient);	// subtract because we're really
+        locy -= step *  cos(orient);	// moving the world, not the viewer
+        walkView(orient, locx, locy, locz);
+        updateGL();
+    } else if (key == Qt::Key_Right || key == Qt::Key_D) {
+        orient += .25;
+        float step = 0;
+        locx -= step *  sin(orient);	// subtract because we're really
+        locy -= step *  cos(orient);	// moving the world, not the viewer
+        walkView(orient, locx, locy, locz);
+        updateGL();
+    } else { 
+        if(key == Qt::Key_Escape)
+            QApplication::exit();
+    }
+}
+
+void Canvas::mouseReleaseEvent( QMouseEvent *e )
+{
+    mousePressed = false;
+}
+
+void Canvas::mouseMoveEvent( QMouseEvent *e )
+{
+
+}
+
+void Canvas::initializeGL()
+{
+    glClearColor (0.0, 0.0, 0.0, 0.0);
+    glEnable(GL_DEPTH_TEST);
+    glShadeModel(GL_SMOOTH);
+    read_room(ROOM);
+}
+
+//
+// when the canvas is resized, this function stretches or shrinks the
+// image to fit. 
+//
+void Canvas::resizeGL( int w, int h )
+{
+    winwidth=w; winheight=h; 
+    glViewport(0, 0, w, h);
+    walkView(orient, locx, locy, locz);
+
+    updateGL();
+}
+
+
+//  displays the objects in stereo imaging style
+//
+void Canvas::paintGL( )
+{
+    //Stereo imaging -- left image
+    glViewport(0, 0, width(), height());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glCallList(theRoom);
+
+//     glLoadIdentity();
+//     glTranslatef(0.0, 0.0, -3.0);
+//     glMultMatrixf((GLfloat *)tb_transform);
+//     gluLookAt(0.0, 0.0, focalLength/100.0, seperation/300.0, 0.0, -2.0, 0.0, 1.0, 0.0);
+
+    
+   //Stereo imaging -- right image
+    //glViewport(width()/2, 0, width()/2, height());
+    //glCallList(theRoom);
+
+//     glLoadIdentity();
+//     glTranslatef(0.0, 0.0, -3.0);
+//     glMultMatrixf((GLfloat *)tb_transform);
+//     //glTranslatef(0.0, 0.0, -focalLength);
+//     gluLookAt(0.0, 0.0, focalLength/100.0, -seperation/300.0, 0.0, -2.0, 0.0, 1.0, 0.0);
+
+
+}
+
+void Canvas::normalize(GLfloat* n) {
+    GLfloat l;
+
+    /* normalize */
+    l = (GLfloat)sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+    n[0] /= l;
+    n[1] /= l;
+    n[2] /= l;
+}
+
+void Canvas::cross(GLfloat* u, GLfloat* v, GLfloat* n) {
+    /* compute the cross product (u x v for right-handed [ccw]) */
+    n[0] = u[1] * v[2] - u[2] * v[1];
+    n[1] = u[2] * v[0] - u[0] * v[2];
+    n[2] = u[0] * v[1] - u[1] * v[0];
+}
+
+
+//------------------------------------------------------
+//     General (non-OpenGL) widget stuff
+//------------------------------------------------------
+GLPaint::GLPaint( QWidget *parent, const char *name )
+    : QMainWindow( parent, name )
+{
+    canvas = new Canvas( this );
+    setCentralWidget( canvas );
+
+    //
+    // make a toolbar
+    //
+    QToolBar *tools = new QToolBar( this );
+    
+    focalLabel = new QLabel( "Focal Length:", tools, "Focal Length Label", 0 );
+    focalLabel->setFrameStyle( QFrame::Panel);
+    focalLabel->setAlignment( AlignAuto | AlignVCenter | ExpandTabs | ShowPrefix );
+    
+    focalLengthSlider = new QSlider(Horizontal, tools, "Focal Length" );
+    focalLengthSlider->setRange( 0, 99 );
+    focalLengthSlider->setValue( 0 );
+    connect(focalLengthSlider, SIGNAL(valueChanged(int)), this, SLOT(slotChangeFocal(int)));
+    tools->addSeparator();
+    
+    eyeLabel = new QLabel( "Eye Seperation:", tools, "Eye Seperation Label", 0 );
+    eyeLabel->setFrameStyle( QFrame::Panel);
+    eyeLabel->setAlignment( AlignAuto | AlignVCenter | ExpandTabs | ShowPrefix );
+    
+    eyeSlider = new QSlider(Horizontal, tools, "Eye Seperation" );
+    eyeSlider->setRange( 0, 99 );
+    eyeSlider->setValue( 0 );
+    connect(eyeSlider, SIGNAL(valueChanged(int)), this, SLOT(slotChangeEye(int)));
+    tools->addSeparator();
+
+    //
+    // make a menubar
+    //
+    file = new QPopupMenu();
+    file->insertItem ("E&xit", this, SLOT( slotExit() ), CTRL+Key_Q );
+
+    help = new QPopupMenu();
+    help->insertItem ("&About", this, SLOT( slotAbout() ) );
+
+    menubar = new QMenuBar( this );
+    menubar->insertItem( "&File", file);
+    menubar->insertItem( "&Help", help);
+    
+}
+
+//-----------Slots-------------------
+void GLPaint::slotChangeFocal(int focal) {
+    canvas->setFocalLength(focal);
+}
+
+void GLPaint::slotChangeEye(int eye) {
+    canvas->setEyeSep(eye);
+}
+
+void GLPaint::slotAbout()
+{
+    QMessageBox::information(this, "Ryckbost Design", "Author:\tBrian Ryckbost\nVersion:\t0.4.5\nPurpose:\tCreate a trackball program using UpenGL and QT.\n  Ryckbost Design is proud to offer you the highest quality software available.\n  This trackball program is truly one of a kind!\n" );
+}
+
+void GLPaint::slotExit()
+{
+    exit(0);
+}

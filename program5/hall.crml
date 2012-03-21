@@ -1,0 +1,99 @@
+eyep 10 18 6
+lookp 8 18 6
+
+faces 15
+
+color .6 .8 1
+texture none
+vertices -10000 -10000 12  -10000 10000 12  10000 10000 12  10000 -10000 12
+
+color .1 .5 .2
+texture none
+vertices -10000 -10000 -1 10000 -10000 -1 10000 10000 -1 -10000 10000 -1
+
+color 1 .5 .5
+texture /home/hplantin/public/crml/2007/wall4.sgi
+vertices 0 0 0  0 0 10  10 0 10  10 0 0
+
+color 1 .25 .25
+texture /home/hplantin/public/crml/2007/wall3.sgi
+vertices 10 0 0 10 0 10  20 0 10  20 0 0
+
+color .5 1 .5
+texture /home/hplantin/public/crml/2007/wall2.sgi
+vertices 20 0 0  20 0 10  20 10 10  20 10 0
+
+color .25 1 .25
+texture /home/hplantin/public/crml/2007/wall1.sgi
+vertices 20 10 0  20 10 10  20 20 10  20 20 0
+
+color 1 1 0
+texture /home/hplantin/public/crml/2007/pic1.sgi
+vertices 20 20 0  20 20 10  10 20 10  10 20 0
+
+color 1 1 .25
+texture /home/hplantin/public/crml/2007/pic1.sgi
+vertices 10 20 0  10 20 10  0 20 10  0 20 0
+
+color .5 .5 1
+texture /home/hplantin/public/crml/2007/wall6.sgi
+vertices 0 20 0  0 20 10  0 10 10  0 10 0
+
+color .25 .25 1
+texture /home/hplantin/public/crml/2007/wall5.sgi
+vertices 0 10 0  0 10 10  0  0 10  0 0 0
+
+color .2 .2 .2
+texture none
+vertices 0 0 0  20 0 0  20 20 0  0 20 0
+
+color 1 1 0
+texture /home/hplantin/public/crml/2007/wes3.sgi
+vertices 10.5 8 0  10.5 8 6  8 8 6  8 8 0
+
+color 1 1 0 
+texture /home/hplantin/public/crml/2007/wes4.sgi
+vertices 10.5 10.5 0  10.5 10.5 6  10.5 8 6  10.5 8 0
+
+color 1 1 0
+texture /home/hplantin/public/crml/2007/wes1.sgi
+vertices 8 10.5 0  8 10.5 6  10.5 10.5 6  10.5 10.5 0
+
+color 1 1 0
+texture /home/hplantin/public/crml/2007/wes2.sgi
+vertices 8 8 0  8 8 6  8 10.5 6  8 10.5 0
+
+walls 4
+0 0 0 20
+0 20 15 20
+20 20 20 0
+20 0 0 0
+
+doors 20
+20 20	20 17.5 /home/hplantin/public/crml/2007/jpb6/home.crml 5 5 6 0 5 6
+20 17.5	20 15 /home/hplantin/public/crml/2007/ndb2/home.crml 5 5 6 0 5 6
+20 15	20 12.5 /home/hplantin/public/crml/2007/thb3/home.crml 5 5 6 0 5 6
+20 12.5	20 10 /home/hplantin/public/crml/2007/ejd7/home.crml 5 5 6 0 5 6
+20 10	20 7.5 /home/hplantin/public/crml/2007/dkh2/home.crml 5 5 6 0 5 6
+20 7.5	20 5 /home/hplantin/public/crml/2007/jph5/home.crml 1 10 6 2 10 6
+20 5	20 2.5 /home/hplantin/public/crml/2007/bjh8/home.crml 5 5 6 0 5 6
+20 2.5	20 0 /home/hplantin/public/crml/2007/saj3/home.crml 5 5 6 0 5 6
+
+17.5 0	20 0 /home/hplantin/public/crml/2007/mdj5/home.crml 5 5 6 0 5 6
+15 0	17.5 0 /home/hplantin/public/crml/2007/enk3/home.crml 5 5 6 0 5 6
+12.5 0	15 0 /home/hplantin/public/crml/2007/bcl3/home.crml 5 5 6 0 5 6
+10 0	12.5 0 /home/hplantin/public/crml/2007/bwr2/home.crml 5 5 6 0 5 6
+7.5 0	10 0 /home/hplantin/public/crml/2007/tas5/home.crml 5 5 6 0 5 6
+5 0	7.5 0 /home/hplantin/public/crml/2007/jas26/home.crml 5 5 6 0 5 6
+2.5 0	5 0 /home/hplantin/public/crml/2007/des4/home.crml 5 5 6 0 5 6
+0 0	2.5 0 /home/hplantin/public/crml/2007/bct2/home.crml 5 5 6 0 5 6
+
+0 0	2.5 0 /home/hplantin/public/crml/2007/kdt2/home.crml 5 5 6 0 5 6
+0 2.5	0 0 /home/hplantin/public/crml/2007/bdv4/home.crml 5 5 6 0 5 6
+0 5	0 2.5 /home/hplantin/public/crml/2004/hall.crml 5 5 6 0 5 6
+0 7.5	0 5 /home/hplantin/public/crml/2002/hall.crml 5 5 6 0 5 6
+
+objects 2
+translate -1 -2 -3 scale 2.5 2.5 2.5 translate 1 2 3 rotate 90 1 0 0/home/hplantin/public/crml/2004/couch.obj
+scale 2 2 2 translate 4.5 4.5 3 rotate  90 1 0 0 /home/hplantin/public/crml/2004/lamp.obj
+
