@@ -1,0 +1,27 @@
+newmtl LaptopPlastic
+Kd 0.392157 0.392157 0.392157
+
+newmtl LaptopPorts
+Kd 0.392157 0.392157 0.392157
+
+newmtl LaptopKeys
+Kd 0.588235 0.588235 0.588235
+
+newmtl LaptopKeysText
+Kd 0.000000 0.000000 0.000000
+
+newmtl LaptopLights
+Kd 0.356863 1.000000 0.400000
+
+newmtl LaptopButtons
+Kd 0.274510 0.274510 0.274510
+
+newmtl LaptopKeyboardRecesses
+Kd 0.196078 0.196078 0.196078
+
+newmtl LaptopMousepad
+Kd 0.196078 0.196078 0.196078
+
+newmtl LaptopScreen
+Kd 0.560784 0.498039 0.737255
+

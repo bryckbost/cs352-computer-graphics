@@ -1,0 +1,24 @@
+newmtl CowEyes
+Kd 0.314 0.196 0.078
+Ks 0.6 0.6 0.6
+
+newmtl CowHide
+Kd 0.78 0.78  0.78
+
+newmtl CowHooves
+Kd 0.4 0.32 0.24
+Ks 0.2 0.2 0.2
+
+newmtl CowHorns
+Kd 0.4 0.32 0.24
+Ks 0.4 0.4 0.4
+
+newmtl CowNose
+Kd 0.16 0.12 0.12
+
+newmtl CowTail
+Kd 0.16 0.16 0.16
+
+newmtl CowUdder
+Kd 0.67 0.55 0.38
+

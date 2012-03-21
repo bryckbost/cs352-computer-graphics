@@ -1,0 +1,13 @@
+
+newmtl Skin
+Kd 0.784 0.588 0.392
+
+newmtl Nails
+Kd 0.902 0.706 0.510
+
+newmtl VS-logo-triangle
+Kd 0.157 0.510 0.784
+
+newmtl VS-logo-title
+Kd 0.039 0.039 0.039
+

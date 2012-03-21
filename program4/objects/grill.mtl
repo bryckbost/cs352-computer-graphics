@@ -1,0 +1,30 @@
+newmtl bbq_ashbin_metal_doubleside
+Kd 0.784314 0.784314 0.784314
+
+newmtl bbq_base_blue
+Kd 0.200000 0.215686 0.568627
+
+newmtl bbq_grill_metal
+Kd 0.784314 0.784314 0.784314
+
+newmtl bbq_handle_wood
+Kd 0.568627 0.396078 0.254902
+
+newmtl bbq_lid_blue
+Kd 0.200000 0.215686 0.568627
+
+newmtl bbq_lower_grill_metal
+Kd 0.784314 0.784314 0.784314
+
+newmtl bbq_metal_flat
+Kd 0.784314 0.784314 0.784314
+
+newmtl bbq_metal_smooth
+Kd 0.784314 0.784314 0.784314
+
+newmtl bbq_wheel_black_plastic
+Kd 0.156863 0.156863 0.156863
+
+newmtl bbq_wheel_white_plastic
+Kd 1.000000 1.000000 1.000000
+

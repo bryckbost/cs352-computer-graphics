@@ -1,0 +1,18 @@
+#!/usr/bin/perl -w
+use strict;
+
+# quick hack to convert 'xml' format version of object 
+# to a .mtl file
+
+my ($name,$r,$g,$b);
+while (<>) {
+   next unless m/^<shader/;
+   $name = $1 if m/name="([^"]*)"/;
+   print "newmtl $name\n";
+   $_=<>;
+   $_=<>;
+   $r = $1 if m/r="([^"]*)"/;
+   $g = $1 if m/g="([^"]*)"/;
+   $b = $1 if m/b="([^"]*)"/;
+   print "Kd $r $g $b\n\n";
+}
